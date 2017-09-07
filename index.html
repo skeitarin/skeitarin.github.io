@@ -1,31 +1,22 @@
 <!DOCTYPE html>
 <html>
-<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
-	<title>Webカメラの映像を画像化</title>
-	
-
-	
-	
-	
-	
-</head>
-<body>
-	<h2>Video</h2>
-	<video id="camera" autoplay></video>
-	<button id="start">写真を撮る</button>
-	<h2>Canvas</h2>
-	<canvas id="canvas"></canvas>
-	<h2>Img</h2>
-	<img id="img">
-	
-	<script
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Webカメラの映像を画像化</title>
+  </head>
+  <body>
+    <h2>Video</h2>
+    <video id="camera" autoplay></video>
+    <button id="start">写真を撮る</button>
+    <h2>Canvas</h2>
+    <canvas id="canvas"></canvas>
+    <h2>Img</h2>
+    <img id="img">
+    <script
   src="https://code.jquery.com/jquery-3.2.1.min.js"
   integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
   crossorigin="anonymous"></script>
-	
-	<script>
+    <script>
 	$(function() {
 	//videoタグを取得
 	var video = document.getElementById('camera');
@@ -41,23 +32,16 @@
 		console.log('エラー!', e);
 	};
 
-//	if(!hasGetUserMedia()) {
-//		alert("未対応ブラウザです。");
-//	} else {
-//		window.URL = window.URL || window.webkitURL;
-//		navigator.getUserMedia  = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
-//		navigator.getUserMedia({video: true}, function(stream) {
-//			video.src = window.URL.createObjectURL(stream);
-//			localMediaStream = stream;
-//		}, onFailSoHard);
-//	}
-
-				window.URL = window.URL || window.webkitURL;
+	if(!hasGetUserMedia()) {
+		alert("未対応ブラウザです。");
+	} else {
+		window.URL = window.URL || window.webkitURL;
 		navigator.getUserMedia  = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
 		navigator.getUserMedia({video: true}, function(stream) {
 			video.src = window.URL.createObjectURL(stream);
 			localMediaStream = stream;
 		}, onFailSoHard);
+	}
 		
 	$("#start").click(function() {
 		if (localMediaStream) {
@@ -81,13 +65,6 @@
 		}
 	});
 });
-	
-	
-	
 	</script>
-	
-	
-	
-	
-</body>
+  </body>
 </html>
