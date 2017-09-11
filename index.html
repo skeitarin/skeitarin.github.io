@@ -56,6 +56,7 @@ $(function () {
                 }
             };
             console.log('Device Id Selected:' + devIds[devIds.length - 1]);
+		devIds.forEach(function(id){alert(id);});
             navigator.mediaDevices.getUserMedia(
              constraints
             ).then(function (stream) {
