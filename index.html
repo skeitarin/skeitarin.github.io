@@ -35,12 +35,42 @@
 	if(!hasGetUserMedia()) {
 		alert("未対応ブラウザです。");
 	} else {
-		window.URL = window.URL || window.webkitURL;
-		navigator.getUserMedia  = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
-		navigator.getUserMedia({video: true}, function(stream) {
-			video.src = window.URL.createObjectURL(stream);
-			localMediaStream = stream;
-		}, onFailSoHard);
+        // new
+        var devIds = [];
+        navigator.mediaDevices.enumerateDevices()
+        .then(function (devices) { // 成功時
+            devices.forEach(function (device) {
+                // デバイスごとの処理
+                if(device.kind == 'videoinput'){
+                    console.log('Device kind:' + device.kind + ', Device Id:' + device.deviceId);
+                    devIds.push(device.deviceId)
+                }
+            });
+            var constraints = {
+                video: {
+                    deviceId: devIds[devIds.length - 1]
+                }
+            };
+            console.log('Device Id Selected:' + devIds[devIds.length - 1]);
+            navigator.mediaDevices.getUserMedia(
+             constraints
+            ).then(function (stream) {
+                video.src = window.URL.createObjectURL(stream);
+                localMediaStream = stream;
+            }).catch(function (err) { // エラー時
+                console.error('getUserMedia Err:', err);
+            });
+        }).catch(function (err) { // エラー発生時
+            console.error('enumerateDevide ERROR:', err);
+        });
+        // /new
+
+
+
+        //navigator.getUserMedia({ video: true }, function (stream) {
+        //    video.src = window.URL.createObjectURL(stream);
+        //    localMediaStream = stream;
+        //}, onFailSoHard);
 	}
 		
 	$("#start").click(function() {
