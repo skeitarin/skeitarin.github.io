@@ -17,24 +17,28 @@
   integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
   crossorigin="anonymous"></script>
     <script>
-	$(function() {
-	//videoタグを取得
-	var video = document.getElementById('camera');
-	//カメラが起動できたかのフラグ
-	var localMediaStream = null;
-	//カメラ使えるかチェック
-	var hasGetUserMedia = function() {
-		return (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
-	};
+$(function () {
+    //videoタグを取得
+    var video = document.getElementById('camera');
+    //カメラが起動できたかのフラグ
+    var localMediaStream = null;
+    //カメラ使えるかチェック
+    var hasGetUserMedia = function () {
+        return (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
+    };
 
-	//エラー
-	var onFailSoHard = function(e) {
-		console.log('エラー!', e);
-	};
+    //エラー
+    var onFailSoHard = function (e) {
+        console.log('エラー!', e);
+    };
 
-	if(!hasGetUserMedia()) {
-		alert("未対応ブラウザです。");
-	} else {
+    if (!hasGetUserMedia()) {
+        alert("未対応ブラウザです。");
+    } else {
+        window.URL = window.URL || window.webkitURL;
+        navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+
+
         // new
         var devIds = [];
         navigator.mediaDevices.enumerateDevices()
@@ -71,30 +75,114 @@
         //    video.src = window.URL.createObjectURL(stream);
         //    localMediaStream = stream;
         //}, onFailSoHard);
-	}
-		
-	$("#start").click(function() {
-		if (localMediaStream) {
-			var canvas = document.getElementById('canvas');
-			//canvasの描画モードを2sに
-			var ctx = canvas.getContext('2d');
-			var img = document.getElementById('img');
+    }
 
-			//videoの縦幅横幅を取得
-			var w = video.offsetWidth;
-			var h = video.offsetHeight;
+    $("#start").click(function () {
+        //		if (localMediaStream) {
+        //			var canvas = document.getElementById('canvas');
+        //			//canvasの描画モードを2sに
+        //			var ctx = canvas.getContext('2d');
+        //			var img = document.getElementById('img');
+        //
+        //			//videoの縦幅横幅を取得
+        //			var w = video.offsetWidth;
+        //			var h = video.offsetHeight;
+        //
+        //			//同じサイズをcanvasに指定
+        //			canvas.setAttribute("width", w);
+        //			canvas.setAttribute("height", h);
+        //
+        //			//canvasにコピー
+        //			ctx.drawImage(video, 0, 0, w, h);
+        //			//imgにpng形式で書き出し
+        //			img.src = canvas.toDataURL('image/png');
+        //		}
 
-			//同じサイズをcanvasに指定
-			canvas.setAttribute("width", w);
-			canvas.setAttribute("height", h);
+        var obj;
+        var stop = startReadQR(video, function (obj) {
+            stop();
+            alert("OK");
+            alert(obj);
 
-			//canvasにコピー
-			ctx.drawImage(video, 0, 0, w, h);
-			//imgにpng形式で書き出し
-			img.src = canvas.toDataURL('image/png');
-		}
-	});
+        }, function () { stop(); });
+
+    });
 });
+
+function startReadQR(video, callback, error) {
+    var store = {
+        all_length: 0,
+        length: 0
+    };
+
+    var state = "run";
+
+    qrcode.callback = function (res) {
+        if (res == 'error decoding QR Code') {
+            error();
+        } else {
+            console.log("read", res);
+            receiveQr(res, store, callback);
+        }
+    }
+
+    var videoRead = function () {
+        var w = video.videoWidth;
+        var h = video.videoHeight;
+        var canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        var ctx = canvas.getContext("2d");
+
+        var draw = function () {
+            if (state == "stop") {
+                return;
+            }
+
+            requestAnimationFrame(draw);
+            ctx.drawImage(video, 0, 0, w, h);
+            var img = canvas.toDataURL("image/png");
+            qrcode.decode(img);
+        };
+
+        draw();
+    }
+
+    if (video.readyState == 0) {
+        video.onloadedmetadata = videoRead;
+    } else {
+        videoRead();
+    }
+
+    return function () {
+        state = "stop";
+    };
+}
+
+function receiveQr(data, store, callback) {
+    var idx = data.slice(0, data.indexOf("_"))
+    var len = data.slice(data.indexOf("_") + 1, data.indexOf(":"));
+    if (store.all_length != len) {
+        for (var k in store) {
+            delete store[k];
+        }
+        store.all_length = Number(len);
+        store.length = 0;
+    }
+    if (!store[idx]) {
+        store[idx] = data.slice(data.indexOf(":") + 1);
+        store.length++;
+    }
+    console.log("receive " + idx + " / " + len, store);
+    if (store.length == store.all_length) {
+        var d = "";
+        for (var i = 0; i < store.all_length; ++i) {
+            d += store[i];
+        }
+        var obj = inflate_obj(d);
+        callback(obj);
+    }
+}
 	</script>
   </body>
 </html>
